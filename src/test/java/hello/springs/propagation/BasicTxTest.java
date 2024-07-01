@@ -128,4 +128,22 @@ public class BasicTxTest {
         Assertions.assertThatThrownBy(() ->transactionManager.commit(outer))
                 .isInstanceOf(UnexpectedRollbackException.class);
     }
+
+    @Test
+    void inner_rollback_requires_new() {
+        log.info("외부 트랜잭션 처리");
+        TransactionStatus outer = transactionManager.getTransaction(new DefaultTransactionAttribute());
+        log.info("outer.isNewTransaction()={}", outer.isNewTransaction());
+
+        log.info("내부 트랜잭션 처리");
+        DefaultTransactionAttribute definition = new DefaultTransactionAttribute();
+        definition.setPropagationBehavior(DefaultTransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        TransactionStatus inner = transactionManager.getTransaction(definition);
+        log.info("inner.isNewTransaction()={}", inner.isNewTransaction());
+
+        log.info("내부 트랜잭션 롤백");
+        transactionManager.rollback(inner);
+        log.info("외부 트랜잭션 커밋");
+        transactionManager.commit(outer);
+    }
 }
