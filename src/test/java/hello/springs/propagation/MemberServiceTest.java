@@ -119,9 +119,21 @@ class MemberServiceTest {
         Assertions.assertTrue(memberRepository.findByUsername(username).isEmpty());
         Assertions.assertTrue(logRepository.findByUsername(username).isEmpty());
     }
-
-
+    /**
+     * memberService @Transactional : ON
+     * memberRepository @Transactional : ON
+     * logRepository @Transactional(REQUIRES_NEW) : ON Exception
+     */
     @Test
-    void joinV2() {
+    void recoverException_success() {
+        //given
+        String username = "로그예외_recoverException_success";
+        //when
+        memberService.joinV2(username);
+
+        //then : 멤버는 커밋되고 로그는 롤백된다
+        Assertions.assertTrue(memberRepository.findByUsername(username).isPresent());
+        Assertions.assertTrue(logRepository.findByUsername(username).isEmpty());
     }
+
 }
