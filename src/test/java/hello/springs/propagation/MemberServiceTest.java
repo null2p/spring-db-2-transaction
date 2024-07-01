@@ -5,9 +5,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
 @SpringBootTest
@@ -35,7 +36,6 @@ class MemberServiceTest {
         Assertions.assertTrue(memberRepository.findByUsername(username).isPresent());
         Assertions.assertTrue(logRepository.findByUsername(username).isPresent());
     }
-
     /**
      * memberService @Transactional : OFF
      * memberRepository @Transactional : ON
@@ -51,6 +51,39 @@ class MemberServiceTest {
         //then
         Assertions.assertTrue(memberRepository.findByUsername(username).isPresent());
         Assertions.assertTrue(logRepository.findByUsername(username).isEmpty());
+    }
+
+    /**
+     * memberService @Transactional : ON
+     * memberRepository @Transactional : OFF
+     * logRepository @Transactional : OFF
+     */
+    @Test
+    void singleTx() {
+        //given
+        String username = "singleTx";
+        //when
+        memberService.joinV1(username);
+        //then
+        Assertions.assertTrue(memberRepository.findByUsername(username).isPresent());
+        Assertions.assertTrue(logRepository.findByUsername(username).isPresent());
+    }
+
+    /**
+     * memberService @Transactional : ON
+     * memberRepository @Transactional : ON
+     * logRepository @Transactional : ON
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    @Test
+    void outerTxOn_success() {
+        //given
+        String username = "outerTxOn_success";
+        //when
+        memberService.joinV1(username);
+        //then
+        Assertions.assertTrue(memberRepository.findByUsername(username).isPresent());
+        Assertions.assertTrue(logRepository.findByUsername(username).isPresent());
     }
 
     @Test
